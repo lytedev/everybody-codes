@@ -4,29 +4,29 @@ fn main() {
     let quest = {
         let event = args
             .next()
-            .expect("no event command line argument provided")
+            .expect("no 'event' command line argument provided")
             .trim()
             .to_string();
 
         let quest_id = args
             .next()
-            .expect("no quest identifier command line argument provided")
+            .expect("no 'quest identifier' command line argument provided")
             .trim()
             .to_string();
 
-        Quest::new(event, quest_id)
+        let part = args
+            .next()
+            .expect("no 'part' command line argument provided")
+            .trim()
+            .to_string();
+
+        Quest::new(event, quest_id, part)
     };
 
-    let result: String = match quest.event.as_str() {
-        "2024" => match quest.id.as_str() {
-            "1" => event2024_quest1::Completer::solve(&quest),
-            _ => {
-                panic!("unknown quest: {}", &quest.id);
-            }
-        },
-        _ => {
-            panic!("unknown event: {}", &quest.event);
-        }
+    let result = match (quest.event.as_str(), quest.id.as_str(), quest.part.as_str()) {
+        ("2024", "1", "1") => event2024_quest1::Part1::solve(&quest),
+        ("2024", "1", "2") => event2024_quest1::Part2::solve(&quest),
+        _ => panic!("no solution available for {}", quest),
     };
 
     println!("{} Result: {}", quest, result);
@@ -35,25 +35,36 @@ fn main() {
 pub struct Quest {
     pub id: String,
     pub event: String,
+    pub part: String,
     pub input: String,
 }
 
 impl Quest {
-    fn new(event: String, id: String) -> Quest {
-        let input = std::fs::read_to_string(format!("input/{}-{}.txt", event, id))
-            .expect("failed to load input");
-        Quest { event, id, input }
+    fn new(event: String, id: String, part: String) -> Quest {
+        let input =
+            std::fs::read_to_string(format!("input/{}/quest{}-part{}.txt", event, id, part))
+                .expect("failed to load input");
+        Quest {
+            event,
+            id,
+            part,
+            input,
+        }
     }
 }
 
 impl std::fmt::Display for Quest {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Event {} Quest {}", self.event, self.id)
+        write!(
+            f,
+            "Event {}, Quest {}, Part {}",
+            self.event, self.id, self.part
+        )
     }
 }
 
 pub trait QuestCompleter {
-    fn solve(quest: &Quest) -> String;
+    fn solve(quest: &Quest) -> impl std::fmt::Display;
 }
 
 mod prelude {
