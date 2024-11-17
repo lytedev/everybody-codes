@@ -26,6 +26,7 @@ fn main() {
     let result = match (quest.event.as_str(), quest.id.as_str(), quest.part.as_str()) {
         ("2024", "1", "1") => event2024_quest1::Part1::solve(&quest.input),
         ("2024", "1", "2") => event2024_quest1::Part2::solve(&quest.input),
+        ("2024", "1", "3") => event2024_quest1::Part3::solve(&quest.input),
         _ => panic!("no solution available for {}", quest),
     };
 
