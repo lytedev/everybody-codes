@@ -4,7 +4,15 @@ pub fn num_potions(b: u8) -> u32 {
     match b {
         b'B' => 1,
         b'C' => 3,
+        b'D' => 5,
         _ => 0,
+    }
+}
+
+pub struct Part1 {}
+impl QuestCompleter<u32> for Part1 {
+    fn solve(input: &str) -> u32 {
+        input.bytes().map(num_potions).sum()
     }
 }
 
@@ -16,21 +24,25 @@ pub fn num_potions_pair(a: u8, b: u8) -> u32 {
     }
 }
 
-pub struct Part1 {}
-impl QuestCompleter for Part1 {
-    fn solve(quest: &Quest) -> u32 {
-        quest.input.bytes().map(num_potions).sum::<u32>()
+pub struct Part2 {}
+impl QuestCompleter<u32> for Part2 {
+    fn solve(input: &str) -> u32 {
+        let mut bytes = input.bytes();
+        let mut result = 0;
+        while let (Some(a), Some(b)) = (bytes.next(), bytes.next()) {
+            println!("result: {result} {} {}", a as char, b as char);
+            result += num_potions_pair(a, b);
+        }
+        result
     }
 }
 
-pub struct Part2 {}
-impl QuestCompleter for Part2 {
-    fn solve(quest: &Quest) -> u32 {
-        quest.input.bytes()[..]
-            .chunks_exact(2)
-            .map(|c| (c[0], c[1]))
-            .map(num_potions_pair)
-            .sum::<u32>()
-            .to_string()
+mod part2test {
+    #[allow(unused_imports)]
+    use super::*;
+
+    #[test]
+    fn part2_example() {
+        assert_eq!(Part2::solve("AxBCDDCAxD"), 28)
     }
 }

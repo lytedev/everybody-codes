@@ -24,8 +24,8 @@ fn main() {
     };
 
     let result = match (quest.event.as_str(), quest.id.as_str(), quest.part.as_str()) {
-        ("2024", "1", "1") => event2024_quest1::Part1::solve(&quest),
-        ("2024", "1", "2") => event2024_quest1::Part2::solve(&quest),
+        ("2024", "1", "1") => event2024_quest1::Part1::solve(&quest.input),
+        ("2024", "1", "2") => event2024_quest1::Part2::solve(&quest.input),
         _ => panic!("no solution available for {}", quest),
     };
 
@@ -63,12 +63,12 @@ impl std::fmt::Display for Quest {
     }
 }
 
-pub trait QuestCompleter {
-    fn solve(quest: &Quest) -> impl std::fmt::Display;
+pub trait QuestCompleter<D: std::fmt::Display> {
+    fn solve(input: &str) -> D;
 }
 
 mod prelude {
-    pub use super::{Quest, QuestCompleter};
+    pub use super::QuestCompleter;
 }
 
 mod event2024_quest1;
