@@ -12,7 +12,7 @@ mod part1test {
     use super::*;
 
     #[test]
-    fn part1_example() {
+    fn example() {
         assert_eq!(Part1::solve("part1example"), 777)
     }
 }
@@ -29,7 +29,7 @@ mod part2test {
     use super::*;
 
     #[test]
-    fn part2_example() {
+    fn example() {
         assert_eq!(Part2::solve("part2example"), 777)
     }
 }
@@ -46,7 +46,7 @@ mod part3test {
     use super::*;
 
     #[test]
-    fn part3_example() {
+    fn example() {
         assert_eq!(Part3::solve("part3example"), 777)
     }
 }
