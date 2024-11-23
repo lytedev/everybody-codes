@@ -2,14 +2,14 @@ use super::prelude::*;
 
 struct RunicNote<'a> {
     needles: Vec<&'a str>,
-    haystack: &'a str,
+    haystack_lines: Vec<&'a str>,
 }
 
 impl<'a> RunicNote<'a> {
     fn parse(input: &'a str) -> Self {
         Self {
             needles: (&input[6..input.find('\n').unwrap()]).split(",").collect(),
-            haystack: &input[input.find('\n').unwrap() + 2..],
+            haystack_lines: vec![&input[input.find('\n').unwrap() + 2..]],
         }
     }
 }
@@ -17,15 +17,18 @@ impl<'a> RunicNote<'a> {
 pub struct Part1 {}
 impl QuestCompleter<i64> for Part1 {
     fn solve(input: &str) -> i64 {
-        let RunicNote { needles, haystack } = RunicNote::parse(input);
+        let RunicNote {
+            needles,
+            haystack_lines,
+        } = RunicNote::parse(input);
         let mut result = 0;
-        for n in 0..haystack.len() {
+        for n in 0..haystack_lines[0].len() {
             for needle in &needles {
-                if needle.len() >= (haystack.len() - n) {
-                    // If the remainder of the haystack we're searching doesn't have enough characters, we skip on
+                if needle.len() >= (haystack_lines[0].len() - n) {
+                    // If the remainder of the haystack_lines[0] we're searching doesn't have enough characters, we skip on
                     continue;
                 }
-                if &haystack[n..n + needle.len()] == *needle {
+                if &haystack_lines[0][n..n + needle.len()] == *needle {
                     result += 1
                 }
             }
@@ -52,16 +55,29 @@ mod part1test {
 pub struct Part2 {}
 impl QuestCompleter<i64> for Part2 {
     fn solve(input: &str) -> i64 {
-        let RunicNote { needles, haystack } = RunicNote::parse(input);
+        let RunicNote {
+            needles,
+            haystack_lines,
+        } = RunicNote::parse(input);
+        // TODO: may need to sort needles by length
         let mut result = 0;
-        for n in 0..haystack.len() {
-            for needle in &needles {
-                if needle.len() >= (haystack.len() - n) {
-                    // If the remainder of the haystack we're searching doesn't have enough characters, we skip on
-                    continue;
-                }
-                if &haystack[n..n + needle.len()] == *needle {
-                    result += needle.len() as i64
+        eprintln!("{needles:?}\n{haystack_lines:?}");
+        for line in haystack_lines {
+            for mut n in 0..line.len() {
+                for needle in &needles {
+                    if needle.len() <= (line.len() - n) {
+                        if &line[n..n + needle.len()] == *needle {
+                            result += needle.len() as i64;
+                            n += needle.len() - 1;
+                        }
+                    }
+                    if needle.len() <= n {
+                        eprintln!("{} has {}", &line[line.len() - n..], needle);
+                        if &line[needle.len() - n..] == *needle {
+                            result += needle.len() as i64;
+                            n += needle.len() - 1;
+                        }
+                    }
                 }
             }
         }
@@ -73,7 +89,7 @@ impl QuestCompleter<i64> for Part2 {
 mod part2test {
     use super::*;
 
-    // #[test]
+    #[test]
     fn example() {
         assert_eq!(
             Part2::solve(
@@ -85,7 +101,7 @@ POWE PO WER P OWE R
 THERE IS THE END
 QAQAQ"
             ),
-            42
+            420
         )
     }
 }
