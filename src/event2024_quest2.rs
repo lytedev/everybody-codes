@@ -79,6 +79,11 @@ impl QuestCompleter<usize> for Part2 {
                             "line '{line}' (substr '{l}') ends with needle '{}' {:?} (i: {i})",
                             needle, rrange
                         );
+                        eprintln!(
+                            "      {}{}",
+                            (0..*rrange.start()).map(|_| " ").collect::<String>(),
+                            (rrange).clone().map(|_| ">").collect::<String>()
+                        );
                         for ii in rrange {
                             let initial = runic_symbols.len();
                             runic_symbols.insert((line_index, ii));
@@ -94,6 +99,11 @@ impl QuestCompleter<usize> for Part2 {
                         eprintln!(
                             "line '{line}' (substr '{}') starts with (backwards) needle '{}' {:?} (i: {i})",
                             r, needle, rrange
+                        );
+                        eprintln!(
+                            "      {}{}",
+                            (0..rrange.start).map(|_| " ").collect::<String>(),
+                            (rrange).clone().map(|_| "<").collect::<String>()
                         );
                         for ii in rrange {
                             let initial = runic_symbols.len();
