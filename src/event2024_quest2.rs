@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use super::prelude::*;
 
 struct RunicNote<'a> {
@@ -7,9 +9,13 @@ struct RunicNote<'a> {
 
 impl<'a> RunicNote<'a> {
     fn parse(input: &'a str) -> Self {
+        let mut needles = (&input[6..input.find('\n').unwrap()])
+            .split(",")
+            .collect::<Vec<&'a str>>();
+        needles.sort_by(|a, b| std::cmp::Ord::cmp(&b.len(), &a.len()));
         Self {
-            needles: (&input[6..input.find('\n').unwrap()]).split(",").collect(),
-            haystack_lines: vec![&input[input.find('\n').unwrap() + 2..]],
+            needles,
+            haystack_lines: (&input[input.find('\n').unwrap() + 2..]).lines().collect(),
         }
     }
 }
@@ -53,36 +59,61 @@ mod part1test {
 }
 
 pub struct Part2 {}
-impl QuestCompleter<i64> for Part2 {
-    fn solve(input: &str) -> i64 {
+impl QuestCompleter<usize> for Part2 {
+    fn solve(input: &str) -> usize {
         let RunicNote {
             needles,
             haystack_lines,
         } = RunicNote::parse(input);
-        // TODO: may need to sort needles by length
-        let mut result = 0;
-        eprintln!("{needles:?}\n{haystack_lines:?}");
-        for line in haystack_lines {
-            for mut n in 0..line.len() {
+        let mut runic_symbols: HashSet<(usize, usize)> = HashSet::new();
+        for line_index in 0..haystack_lines.len() {
+            let line = haystack_lines[line_index];
+            eprintln!("line {line}");
+            for i in 0..line.len() {
                 for needle in &needles {
-                    if needle.len() <= (line.len() - n) {
-                        if &line[n..n + needle.len()] == *needle {
-                            result += needle.len() as i64;
-                            n += needle.len() - 1;
+                    let l = &line[0..=i];
+                    if l.ends_with(needle) {
+                        eprintln!("{i}");
+                        let rrange = i - (needle.len() - 1)..=i;
+                        eprintln!(
+                            "line '{line}' (substr '{l}') ends with needle '{}' {:?} (i: {i})",
+                            needle, rrange
+                        );
+                        for ii in rrange {
+                            let initial = runic_symbols.len();
+                            runic_symbols.insert((line_index, ii));
+                            let later = runic_symbols.len();
+                            if initial < later {
+                                eprintln!("{later} {line_index} {ii}");
+                            }
                         }
                     }
-                    if needle.len() <= n {
-                        eprintln!("{} has {}", &line[line.len() - n..], needle);
-                        if &line[needle.len() - n..] == *needle {
-                            result += needle.len() as i64;
-                            n += needle.len() - 1;
+                    let r = &line[line.len() - i..];
+                    if r.starts_with(&needle.chars().rev().collect::<String>()) {
+                        let rrange = (line.len() - i)..((line.len() - i) + needle.len());
+                        eprintln!(
+                            "line '{line}' (substr '{}') starts with (backwards) needle '{}' {:?} (i: {i})",
+                            r, needle, rrange
+                        );
+                        for ii in rrange {
+                            let initial = runic_symbols.len();
+                            runic_symbols.insert((line_index, ii));
+                            let later = runic_symbols.len();
+                            if initial < later {
+                                eprintln!("{later} {line_index} {ii}");
+                            }
                         }
                     }
                 }
             }
         }
-        result
+        runic_symbols.len()
     }
+}
+
+// TODO: memoize?
+fn is_palindrome(s: &str) -> bool {
+    s.chars().eq(s.chars().rev())
 }
 
 #[cfg(test)]
@@ -101,7 +132,7 @@ POWE PO WER P OWE R
 THERE IS THE END
 QAQAQ"
             ),
-            420
+            42
         )
     }
 }
