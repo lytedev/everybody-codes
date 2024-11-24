@@ -121,11 +121,6 @@ impl QuestCompleter<usize> for Part2 {
     }
 }
 
-// TODO: memoize?
-fn is_palindrome(s: &str) -> bool {
-    s.chars().eq(s.chars().rev())
-}
-
 #[cfg(test)]
 mod part2test {
     use super::*;
