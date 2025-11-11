@@ -1,4 +1,4 @@
-use super::prelude::*;
+use crate::prelude::*;
 
 pub fn num_potions(b: u8) -> u32 {
     match b {

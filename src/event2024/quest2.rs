@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use super::prelude::*;
+use crate::prelude::*;
 
 struct RunicNote<'a> {
     needles: Vec<&'a str>,
@@ -144,7 +144,7 @@ QAQAQ"
 
 pub struct Part3 {}
 impl QuestCompleter<i64> for Part3 {
-    fn solve(input: &str) -> i64 {
+    fn solve(_input: &str) -> i64 {
         666
     }
 }
