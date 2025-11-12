@@ -8,10 +8,18 @@ enum Direction {
     Right,
 }
 
-#[derive(Debug)]
 enum DirectionParseError {
     Empty,
     Invalid(char),
+}
+
+impl std::fmt::Debug for DirectionParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DirectionParseError::Empty => write!(f, "failed to parse empty string"),
+            DirectionParseError::Invalid(s) => write!(f, "failed to parse invalid '{s}'"),
+        }
+    }
 }
 
 impl FromStr for Direction {
@@ -32,10 +40,18 @@ struct Instruction {
     magnitude: usize,
 }
 
-#[derive(Debug)]
 enum InstructionParseError {
     Direction(DirectionParseError),
     Magnitude(ParseIntError),
+}
+
+impl std::fmt::Debug for InstructionParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InstructionParseError::Direction(d) => write!(f, "failed to parse Direction: {d:?}"),
+            InstructionParseError::Magnitude(m) => write!(f, "failed to parse Magnitude: {m:?}"),
+        }
+    }
 }
 
 impl From<DirectionParseError> for InstructionParseError {
@@ -67,10 +83,20 @@ struct Eggshell {
     instructions: Vec<Instruction>,
 }
 
-#[derive(Debug)]
 enum EggshellParseError {
-    Malformed,
+    CouldNotSplit,
     Instruction(InstructionParseError),
+}
+
+impl std::fmt::Debug for EggshellParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            EggshellParseError::CouldNotSplit => {
+                write!(f, "failed to split names line from instructions line")
+            }
+            EggshellParseError::Instruction(i) => write!(f, "failed to parse Instruction: {i:?}"),
+        }
+    }
 }
 
 impl From<InstructionParseError> for EggshellParseError {
@@ -83,8 +109,9 @@ impl FromStr for Eggshell {
     type Err = EggshellParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (raw_names, raw_instructions) =
-            s.split_once("\n\n").ok_or(EggshellParseError::Malformed)?;
+        let (raw_names, raw_instructions) = s
+            .split_once("\n\n")
+            .ok_or(EggshellParseError::CouldNotSplit)?;
 
         Ok(Self {
             names: raw_names.split(",").map(String::from).collect(),
@@ -103,19 +130,41 @@ impl Eggshell {
             location = match instruction.direction {
                 Direction::Left => location.saturating_sub(instruction.magnitude),
                 Direction::Right => location.saturating_add(instruction.magnitude),
-            };
-            location = location.clamp(0, self.names.len() - 1);
+            }
+            .clamp(0, self.names.len() - 1);
+        }
+        return &self.names[location];
+    }
+
+    fn interpret_ring_name<'a>(&'a self) -> &'a str {
+        let mut location: usize = 0;
+        for instruction in self.instructions.iter() {
+            location = match instruction.direction {
+                Direction::Left => location.overflowing_sub(instruction.magnitude).0,
+                Direction::Right => location.overflowing_add(instruction.magnitude).0,
+            }
+            .rem_euclid(self.names.len());
         }
         return &self.names[location];
     }
 }
 
 pub struct Part1 {}
-impl QuestCompleter<String> for Part1 {
-    fn solve(input: &str) -> String {
+impl QuestCompleter for Part1 {
+    fn solve(&self, input: &str) -> String {
         Eggshell::from_str(input)
             .unwrap()
             .interpret_name()
+            .to_string()
+    }
+}
+
+pub struct Part2 {}
+impl QuestCompleter for Part2 {
+    fn solve(&self, input: &str) -> String {
+        Eggshell::from_str(input)
+            .unwrap()
+            .interpret_ring_name()
             .to_string()
     }
 }
@@ -124,16 +173,27 @@ impl QuestCompleter<String> for Part1 {
 mod test {
     use super::*;
 
-    #[test]
-    fn example() {
-        let shell = r#"Vyrdax,Drakzyph,Fyrryn,Elarzris
+    const example: &str = r#"Vyrdax,Drakzyph,Fyrryn,Elarzris
 
-R3,L2,R3,L1"#
-            .parse::<Eggshell>();
+R3,L2,R3,L1"#;
+
+    #[test]
+    fn example_p1() {
+        let shell = example.parse::<Eggshell>();
         assert!(shell.is_ok());
         println!("{shell:?}");
         let name = shell.unwrap().interpret_name().to_string();
         println!("{name}");
         assert_eq!(name, "Fyrryn");
+    }
+
+    #[test]
+    fn example_p2() {
+        let shell = example.parse::<Eggshell>();
+        assert!(shell.is_ok());
+        println!("{shell:?}");
+        let name = shell.unwrap().interpret_name().to_string();
+        println!("{name}");
+        assert_eq!(name, "Elarzris");
     }
 }

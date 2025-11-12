@@ -21,8 +21,8 @@ impl<'a> RunicNote<'a> {
 }
 
 pub struct Part1 {}
-impl QuestCompleter<i64> for Part1 {
-    fn solve(input: &str) -> i64 {
+impl QuestCompleter for Part1 {
+    fn solve(&self, input: &str) -> String {
         let RunicNote {
             needles,
             haystack_lines,
@@ -39,7 +39,7 @@ impl QuestCompleter<i64> for Part1 {
                 }
             }
         }
-        result
+        result.to_string()
     }
 }
 
@@ -51,16 +51,17 @@ mod part1test {
     fn example() {
         assert_eq!(
             Part1::solve(
+                &Part1 {},
                 "WORDS:THE,OWE,MES,ROD,HER\n\nAWAKEN THE POWER ADORNED WITH THE FLAMES BRIGHT IRE"
             ),
-            4
+            "4"
         )
     }
 }
 
 pub struct Part2 {}
-impl QuestCompleter<usize> for Part2 {
-    fn solve(input: &str) -> usize {
+impl QuestCompleter for Part2 {
+    fn solve(&self, input: &str) -> String {
         let RunicNote {
             needles,
             haystack_lines,
@@ -68,56 +69,26 @@ impl QuestCompleter<usize> for Part2 {
         let mut runic_symbols: HashSet<(usize, usize)> = HashSet::new();
         for line_index in 0..haystack_lines.len() {
             let line = haystack_lines[line_index];
-            eprintln!("line {line}");
             for i in 0..line.len() {
                 for needle in &needles {
                     let l = &line[0..=i];
                     if l.ends_with(needle) {
-                        eprintln!("{i}");
                         let rrange = i - (needle.len() - 1)..=i;
-                        eprintln!(
-                            "line '{line}' (substr '{l}') ends with needle '{}' {:?} (i: {i})",
-                            needle, rrange
-                        );
-                        eprintln!(
-                            "      {}{}",
-                            (0..*rrange.start()).map(|_| " ").collect::<String>(),
-                            (rrange).clone().map(|_| ">").collect::<String>()
-                        );
                         for ii in rrange {
-                            let initial = runic_symbols.len();
                             runic_symbols.insert((line_index, ii));
-                            let later = runic_symbols.len();
-                            if initial < later {
-                                eprintln!("{later} {line_index} {ii}");
-                            }
                         }
                     }
                     let r = &line[line.len() - i..];
                     if r.starts_with(&needle.chars().rev().collect::<String>()) {
                         let rrange = (line.len() - i)..((line.len() - i) + needle.len());
-                        eprintln!(
-                            "line '{line}' (substr '{}') starts with (backwards) needle '{}' {:?} (i: {i})",
-                            r, needle, rrange
-                        );
-                        eprintln!(
-                            "      {}{}",
-                            (0..rrange.start).map(|_| " ").collect::<String>(),
-                            (rrange).clone().map(|_| "<").collect::<String>()
-                        );
                         for ii in rrange {
-                            let initial = runic_symbols.len();
                             runic_symbols.insert((line_index, ii));
-                            let later = runic_symbols.len();
-                            if initial < later {
-                                eprintln!("{later} {line_index} {ii}");
-                            }
                         }
                     }
                 }
             }
         }
-        runic_symbols.len()
+        runic_symbols.len().to_string()
     }
 }
 
@@ -129,6 +100,7 @@ mod part2test {
     fn example() {
         assert_eq!(
             Part2::solve(
+                &Part2 {},
                 "WORDS:THE,OWE,MES,ROD,HER,QAQ
 
 AWAKEN THE POWE ADORNED WITH THE FLAMES BRIGHT IRE
@@ -137,24 +109,24 @@ POWE PO WER P OWE R
 THERE IS THE END
 QAQAQ"
             ),
-            42
+            "42"
         )
     }
 }
 
 pub struct Part3 {}
-impl QuestCompleter<i64> for Part3 {
-    fn solve(_input: &str) -> i64 {
-        666
+impl QuestCompleter for Part3 {
+    fn solve(&self, _input: &str) -> String {
+        666.to_string()
     }
 }
 
-#[cfg(test)]
-mod part3test {
-    use super::*;
+// #[cfg(test)]
+// mod part3test {
+//     use super::*;
 
-    // #[test]
-    fn example() {
-        assert_eq!(Part3::solve("part3example"), 777)
-    }
-}
+//     #[test]
+//     fn example() {
+//         assert_eq!(Part3::solve("part3example"), 777)
+//     }
+// }

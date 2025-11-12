@@ -10,9 +10,9 @@ pub fn num_potions(b: u8) -> u32 {
 }
 
 pub struct Part1 {}
-impl QuestCompleter<u32> for Part1 {
-    fn solve(input: &str) -> u32 {
-        input.bytes().map(num_potions).sum()
+impl QuestCompleter for Part1 {
+    fn solve(&self, input: &str) -> String {
+        input.bytes().map(num_potions).sum::<u32>().to_string()
     }
 }
 
@@ -25,14 +25,14 @@ pub fn num_potions_pair(a: u8, b: u8) -> u32 {
 }
 
 pub struct Part2 {}
-impl QuestCompleter<u32> for Part2 {
-    fn solve(input: &str) -> u32 {
+impl QuestCompleter for Part2 {
+    fn solve(&self, input: &str) -> String {
         let mut bytes = input.bytes();
         let mut result = 0;
         while let (Some(a), Some(b)) = (bytes.next(), bytes.next()) {
             result += num_potions_pair(a, b);
         }
-        result
+        result.to_string()
     }
 }
 
@@ -42,7 +42,7 @@ mod part2test {
 
     #[test]
     fn part2_example() {
-        assert_eq!(Part2::solve("AxBCDDCAxD"), 28)
+        assert_eq!(Part2::solve(&Part2 {}, "AxBCDDCAxD"), "28")
     }
 }
 
@@ -56,14 +56,14 @@ pub fn num_potions_triple(a: u8, b: u8, c: u8) -> u32 {
 }
 
 pub struct Part3 {}
-impl QuestCompleter<u32> for Part3 {
-    fn solve(input: &str) -> u32 {
+impl QuestCompleter for Part3 {
+    fn solve(&self, input: &str) -> String {
         let mut bytes = input.bytes();
         let mut result = 0;
         while let (Some(a), Some(b), Some(c)) = (bytes.next(), bytes.next(), bytes.next()) {
             result += num_potions_triple(a, b, c);
         }
-        result
+        result.to_string()
     }
 }
 
@@ -73,6 +73,6 @@ mod part3test {
 
     #[test]
     fn part3_example() {
-        assert_eq!(Part3::solve("xBxAAABCDxCC"), 30)
+        assert_eq!(Part3::solve(&Part3 {}, "xBxAAABCDxCC"), "30")
     }
 }
