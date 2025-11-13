@@ -29,26 +29,32 @@
           runtimeInputs = with pkgs; [
             xh
             jq
+            xxd
             openssl
           ];
           text = ''
-            COOKIE_CACHE_DIR="''${XDG_CACHE_HOME:-''$HOME/.cache}/everybody-codes"
+            COOKIE_CACHE_DIR="''${XDG_CACHE_HOME:-$HOME/.cache}/everybody-codes"
+            mkdir -p "$COOKIE_CACHE_DIR"
 
             event="$1"; shift
             quest="$1"; shift
             echo "Event $event, Quest $quest" >&2
 
+            # TODO: inform user if cookie isn't working
             # load cookie
             cookie_cache_path="$COOKIE_CACHE_DIR/cookie.txt"
             if [[ ! -f $cookie_cache_path ]]; then
-              echo "Cookie file not found at $cookie_cache_path" >&2
-              exit 1
+              nix run nixpkgs#bitwarden-cli -- config server https://bw.lyte.dev || true
+              nix run nixpkgs#bitwarden-cli -- sync
+              nix run nixpkgs#bitwarden-cli -- get password everybody.codes > "$cookie_cache_path.wip"
+              mv "$cookie_cache_path.wip" "$cookie_cache_path"
             fi
             cookie="$(echo "$cookie_cache_path" | xargs cat | xargs)"
 
             # load seed
-            if [[ ! -f $COOKIE_CACHE_DIR/seed.txt ]]; then
-              xh "https://everybody.codes/api/user/me" "Cookie:everybody-codes=$cookie" | jq -r .seed > "$COOKIE_CACHE_DIR/seed.txt"
+            if [[ ! -f $COOKIE_CACHE_DIR/seed.txt ]] || [[ $(cat "$COOKIE_CACHE_DIR/seed.txt") == 0 ]]; then
+              xh "https://everybody.codes/api/user/me" "Cookie:everybody-codes=$cookie" \
+                | jq -r .seed > "$COOKIE_CACHE_DIR/seed.txt"
             fi
             seed="$(xargs < "$COOKIE_CACHE_DIR/seed.txt")"
             echo "Seed: $seed" >&2
@@ -59,9 +65,10 @@
             mkdir -p "$dir/key" "$dir/input"
 
             # retrieve inputs if needed
-            if [[ ! -f "$dir/inputs.json" ]]; then
+            if [[ ! -f "$dir/inputs.json" ]] || ! jq . "$dir/inputs.json"; then
               xh "https://everybody-codes.b-cdn.net/assets/$event/$quest/input/$seed.json" "Cookie:everybody-codes=$cookie" > "$dir/inputs.json"
             fi
+            cat "$dir/inputs.json"
             for p in 1 2 3; do
               jq -r ".\"$p\"" "$dir/inputs.json" > "$dir/input/$p.encrypted.txt"
             done
