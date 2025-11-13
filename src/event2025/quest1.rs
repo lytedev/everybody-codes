@@ -147,6 +147,26 @@ impl Eggshell {
         }
         return &self.names[location];
     }
+
+    fn interpret_swap_ring_name<'a>(&'a mut self) -> &'a str {
+        for instruction in self.instructions.iter() {
+            let swap_location = match instruction.direction {
+                Direction::Left => {
+                    (self.names.len() * 100)
+                        .overflowing_sub(instruction.magnitude)
+                        .0
+                }
+                Direction::Right => {
+                    (self.names.len() * 100)
+                        .overflowing_add(instruction.magnitude)
+                        .0
+                }
+            }
+            .rem_euclid(self.names.len());
+            self.names.swap(0, swap_location);
+        }
+        return &self.names[0];
+    }
 }
 
 pub struct Part1 {}
@@ -169,31 +189,49 @@ impl QuestCompleter for Part2 {
     }
 }
 
+pub struct Part3 {}
+impl QuestCompleter for Part3 {
+    fn solve(&self, input: &str) -> String {
+        Eggshell::from_str(input)
+            .unwrap()
+            .interpret_swap_ring_name()
+            .to_string()
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
-    const example: &str = r#"Vyrdax,Drakzyph,Fyrryn,Elarzris
+    const EXAMPLE: &str = r#"Vyrdax,Drakzyph,Fyrryn,Elarzris
 
 R3,L2,R3,L1"#;
 
     #[test]
     fn example_p1() {
-        let shell = example.parse::<Eggshell>();
+        let shell = EXAMPLE.parse::<Eggshell>();
         assert!(shell.is_ok());
-        println!("{shell:?}");
         let name = shell.unwrap().interpret_name().to_string();
-        println!("{name}");
         assert_eq!(name, "Fyrryn");
     }
 
     #[test]
     fn example_p2() {
-        let shell = example.parse::<Eggshell>();
+        let shell = EXAMPLE.parse::<Eggshell>();
         assert!(shell.is_ok());
-        println!("{shell:?}");
-        let name = shell.unwrap().interpret_name().to_string();
-        println!("{name}");
+        let name = shell.unwrap().interpret_ring_name().to_string();
         assert_eq!(name, "Elarzris");
+    }
+
+    const EXAMPLE2: &str = r#"Vyrdax,Drakzyph,Fyrryn,Elarzris
+
+R3,L2,R3,L3"#;
+
+    #[test]
+    fn example_p3() {
+        let shell = EXAMPLE2.parse::<Eggshell>();
+        assert!(shell.is_ok());
+        let name = shell.unwrap().interpret_swap_ring_name().to_string();
+        assert_eq!(name, "Drakzyph");
     }
 }
