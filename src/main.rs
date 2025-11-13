@@ -23,6 +23,7 @@ fn mapping() -> HashMap<Key, Box<dyn Fn() -> Box<dyn QuestCompleter>>> {
         "2025", "1", "1",
         "2025", "1", "2",
         "2025", "1", "3",
+        "2025", "2", "1",
     }
 }
 fn main() {
